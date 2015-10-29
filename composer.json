@@ -1,0 +1,19 @@
+{
+  "name": "jonwurtzler/challenge_bracket-checker",
+  "description": "",
+  "authors": [
+    {
+      "name": "Jon Wurtzler",
+      "email": "jwurtzle@nerdery.com"
+    }
+  ],
+  "license": "MIT",
+  "require-dev": {
+    "phpunit/phpunit" : "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "BracketChecker\\": "src/BracketChecker/"
+    }
+  }
+}
