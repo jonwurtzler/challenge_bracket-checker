@@ -1,5 +1,7 @@
 <?php namespace BracketChecker;
 
+use \Exception;
+
 class BracketChecker
 {
 
@@ -33,12 +35,6 @@ class BracketChecker
         $this->baseString = $baseString;
     }
 
-    private function findBracketPair($bracketString) {
-
-
-        return true;
-    }
-
     /**
      * Determine if the current bracket is escaped or not.
      *
@@ -50,35 +46,6 @@ class BracketChecker
     private function isEscaped($bracketString, $pos) {
         if ($pos > 0) {
             if ($bracketString[$pos-1] == "\\") { return true; }
-        }
-
-        return false;
-    }
-
-    /**
-     * Find the first instance of the passed bracket in the given string.
-     *   Ignore any escaped versions, ie '\{' should be ignored.
-     *
-     * @param string $bracketString
-     * @param string $openingBracket
-     * @param int    $offsetPos
-     *
-     * @return bool|int
-     */
-    private function findNextOpeningBracket($bracketString, $openingBracket, $offset = 0)
-    {
-        $bracketPos = strpos($bracketString, $openingBracket, $offset);
-        var_dump("First Bracket Pos: " . $bracketPos . "\n");
-
-        if ($bracketPos) {
-            // Confirm the bracket wasn't escaped.
-            if (!$this->isEscaped($bracketString, $bracketPos)) {
-                return $bracketPos;
-
-            // Continue the search, ignoring found escaped character.
-            } else {
-                return $this->findNextOpeningBracket($bracketString, $openingBracket, $bracketPos+1);
-            }
         }
 
         return false;
@@ -104,67 +71,52 @@ class BracketChecker
             if (!$this->isEscaped($bracketString, $matchingBracketPos)) {
                 return $matchingBracketPos;
 
-            // Continue the search, ignoring found escaped character.
-            //   Use -2 to skip past the found '\' character as well.
+                // Continue the search, ignoring found escaped character.
+                //   Use -2 to skip past the found '\' character as well.
             } else {
-                return $this->findMatchingClosingBracket($bracketString, $closingBracket, $matchingBracketPos-2);
+                $endingOffset = ((strlen($bracketString) - $matchingBracketPos) * -1) -1;
+                return $this->findMatchingClosingBracket($bracketString, $closingBracket, $endingOffset);
             }
         }
+
+        return null;
     }
 
-    /**
-     * Determine if there
-     * @param $bracketString
-     *
-     * @return bool|string
-     * @throws \Exception
-     */
-    private function findNextBracketString($bracketString)
+    private function getBracketString($bracketString)
     {
-        $nextOpeningPos     = null;
-        $nextClosingBracket = "";
+        $length = strlen($bracketString);
 
-        foreach ($this->bracketList as $openingBracket => $closingBracket) {
-            $bracketPos = $this->findNextOpeningBracket($bracketString, $openingBracket);
+        for ($i = 0; $i < $length; $i++) {
+            // Skip any character following a '\'
+            if ($bracketString[$i] == "\\") {
+                $i++;
+            } elseif (array_key_exists($bracketString[$i], $this->bracketList)) {
+                $closingBracket = $this->findMatchingClosingBracket($bracketString, $this->bracketList[$bracketString[$i]]);
 
-            if ($bracketPos) {
-                // We haven't found an opening bracket yet.
-                if ($nextOpeningPos === null) {
-                    $nextOpeningPos     = $bracketPos;
-                    $nextClosingBracket = $closingBracket;
-
-                // Confirm the newly found bracket is before the previously found one.
-                } else {
-                    if ($bracketPos < $nextOpeningPos) {
-                        $nextOpeningPos     = $bracketPos;
-                        $nextClosingBracket = $closingBracket;
-                    }
+                // No closing bracket, stop process fully
+                if (empty($closingBracket)) {
+                    throw new Exception("You have mismatched brackets.\n");
                 }
-            }
-        }
 
-        if (!empty($nextOpeningPos) && $nextOpeningPos > 0) {
-            $nextEndingPos = $this->findMatchingClosingBracket($bracketString, $nextClosingBracket);
-            if ($nextEndingPos) {
-                // Make sure to add the found pair to class property.
+                // Found a full pair, increment total
                 $this->bracketCount++;
 
-                // Pass substr to be searched deeper
-                return substr($bracketString, $nextOpeningPos, $nextEndingPos);
-            // Stop
-            } else {
-                throw new \Exception("Brackets Mismatched");
+                // Update the current index to skip the found set
+                $i = $closingBracket;
+
+                // Look through substring for more brackets
+                $innerStrStart  = $i;
+                $innerStrLength = $closingBracket - $innerStrStart;
+                $innerStr       = substr($bracketString, $innerStrStart, $innerStrLength);
+                //var_dump($innerStr);
+                $this->getBracketString($innerStr);
             }
         }
-
-        return false;
     }
 
     public function checkBrackets()
     {
-        if ($this->findNextBracketString($this->baseString)) {
-            return $this->bracketCount;
-        }
+        $this->getBracketString($this->baseString);
 
         return $this->bracketCount;
     }

@@ -21,7 +21,8 @@ if (!empty($input)) {
     $checker = new BracketChecker($input);
 
     try {
-        $status = $checker->checkBrackets();
+        $pairCount = $checker->checkBrackets();
+        echo("Found {$pairCount} Bracket Pairs\n");
     } catch (Exception $e) {
         echo ($e->getMessage());
     }
