@@ -22,7 +22,13 @@ if (!empty($input)) {
 
     try {
         $pairCount = $checker->checkBrackets();
-        echo("Found {$pairCount} Bracket Pairs\n");
+        if ($pairCount < 1) {
+            echo("No Bracket Pairs Found\n");
+        } elseif ($pairCount == 1) {
+            echo("Found 1 Bracket Pair\n");
+        } else {
+            echo("Found {$pairCount} Bracket Pairs\n");
+        }
     } catch (Exception $e) {
         echo ($e->getMessage());
     }

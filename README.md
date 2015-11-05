@@ -7,7 +7,10 @@ Install the vendor dependencies with Composer:
 ## Usage
 
     $ php bracketchecker.php "example1"
-    Found 0 Bracket Pairs
+    No Bracket Pairs Found
+    
+    $ php bracketchecker.php "example1\(\)()"
+    Found 1 Bracket Pair
 
     $ php bracketchecker.php "(example)[1]"
     Found 2 Bracket Pairs
@@ -20,4 +23,5 @@ Install the vendor dependencies with Composer:
     
     $ php bracketchecker.php "(example)([1)]"
     You have mismtached brackets
+
 
