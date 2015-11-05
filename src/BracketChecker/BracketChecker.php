@@ -66,17 +66,17 @@ class BracketChecker
                         array_pop($bracketStack);
                         $bracketCount++;
                     } else {
-                        throw new Exception("You have mismtached brackets");
+                        throw new Exception("You have mismtached brackets\n");
                     }
                 } else {
-                    throw new Exception("You have extra closing brackets");
+                    throw new Exception("You have extra closing brackets\n");
                 }
             }
         }
 
         // Check if any brackets remain
         if (!empty($bracketStack)) {
-            throw new Exception("You have extra opening brackets");
+            throw new Exception("You have extra opening brackets\n");
         }
 
         return $bracketCount;
