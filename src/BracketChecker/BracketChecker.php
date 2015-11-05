@@ -11,13 +11,6 @@ class BracketChecker
     private $baseString;
 
     /**
-     * Running count of matched brackets
-     *
-     * @var int $bracketCount
-     */
-    private $bracketCount = 0;
-
-    /**
      * @var array $bracketList
      */
     private $bracketList = [
@@ -28,55 +21,65 @@ class BracketChecker
     private $closingBracketList = [];
 
     /**
-     * Set the base string that will be checked.
+     * Set the base string that will be checked and reverse the bracket list array for doing reverse bracket checks.
      *
      * @param string $baseString
      */
     public function __construct($baseString)
     {
         $this->baseString         = $baseString;
-        $this->closingBracketList = array_values($this->bracketList);
+        $this->closingBracketList = array_flip($this->bracketList);
     }
 
     /**
      * Main Searching method.
      *
-     * @param $bracketString
+     * @param string $bracketString
+     *
+     * @return int   $bracketCount
+     *
      * @throws Exception
      */
-    private function getBracketString($bracketString)
+    public function checkBrackets()
     {
-        $length = strlen($bracketString);
+        $length = strlen($this->baseString);
+        $bracketCount = 0;
         $bracketStack = [];
 
         for ($i = 0; $i < $length; $i++) {
+            $currentStringChar = $this->baseString[$i];
+
             // Skip any character following a '\'
-            if ($bracketString[$i] == "\\") {
+            if ($currentStringChar == "\\") {
                 $i++;
 
-            // Handle orphan closing bracket.
-            } elseif (in_array($bracketString[$i], $this->closingBracketList)) {
-                throw new Exception("You have mismatched brackets.\nSpecifically a closing bracket without an opening bracket.\n");
-
             // Found an opening bracket
-            } elseif (array_key_exists($bracketString[$i], $this->bracketList)) {
-                $bracketStack[] = $bracketString[$i];
+            }  elseif (array_key_exists($currentStringChar, $this->bracketList)) {
+                array_push($bracketStack, $currentStringChar);
+
+            // Handle closing bracket.
+            } elseif (array_key_exists($currentStringChar, $this->closingBracketList)) {
+                if (!empty($bracketStack)) {
+                    $bracketArrayLen = count($bracketStack) - 1;
+
+                    if ($bracketStack[$bracketArrayLen] == $this->closingBracketList[$currentStringChar]) {
+                        array_pop($bracketStack);
+                        $bracketCount++;
+                    } else {
+                        throw new Exception("You have mismtached brackets");
+                    }
+                } else {
+                    throw new Exception("You have extra closing brackets");
+                }
             }
         }
+
+        // Check if any brackets remain
+        if (!empty($bracketStack)) {
+            throw new Exception("You have extra opening brackets");
+        }
+
+        return $bracketCount;
     }
-
-    public function checkBrackets()
-    {
-        $this->getBracketString($this->baseString);
-
-        return $this->bracketCount;
-    }
-
-    // Find either '(' or '['
-    // Find a matching ')' or ']' based on what was found
-    //   If match found, rerun method using text from inside it.
-    //   If not found, return false up the chain.
-
-
 
 }
